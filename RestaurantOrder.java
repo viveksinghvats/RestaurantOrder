@@ -1,0 +1,94 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.stream.Collectors;
+
+class RestaurantOrder {
+    static int slotsOccupied = 0;
+    static PriorityQueue<OrderDetail> orderQueue = new PriorityQueue<>(new OrderCompare());
+    public static void main(String[] args) {
+        try {
+            InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            StringBuffer result = new StringBuffer();
+            while (true){
+                String orderData = bufferedReader.readLine();
+                if(orderData == null) break;
+                result.append(calculateOrderTime(orderData.replaceAll("\\[|\\]", "").split("\\s*,\\s*"))).append(System.getProperty("line.separator"));
+            }
+            System.out.println(result);
+        } catch (IOException e){
+            System.out.println("Invalid Input Format");
+        }
+    }
+
+    private static String calculateOrderTime(String[] inputOrderData){
+        final int maxTimeLimit = 150;
+        final int timePerKm = 8;
+        final int maxCookingSlots = 7;
+        final int totalEntry = inputOrderData.length;
+        int slotsForOrder = 0;
+        double timeToCookOrder = 0;
+        String orderId = inputOrderData[0];
+        double distance = Double.parseDouble(inputOrderData[totalEntry - 1]);
+        if(totalEntry > 9) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
+        for(int i = 1; i < totalEntry - 1; i++){
+            if(slotsForOrder <= maxCookingSlots){
+                if(inputOrderData[i].equals("A")){
+                    slotsForOrder += 1;
+                    timeToCookOrder = Math.max(timeToCookOrder, 17);
+                } else if(inputOrderData[i].equals("M")){
+                    slotsForOrder += 2;
+                    timeToCookOrder = 29;
+                } else { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
+            } else { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
+        }
+        timeToCookOrder += (distance * timePerKm);
+        if(slotsForOrder > maxCookingSlots) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
+        if(timeToCookOrder > maxTimeLimit) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
+        if((slotsOccupied + slotsForOrder) <= maxCookingSlots){
+            slotsOccupied += slotsForOrder;
+            orderQueue.add(new OrderDetail(slotsForOrder, timeToCookOrder));
+        } else {
+            List<OrderDetail> orderDetails = new ArrayList<>();
+            while(!orderQueue.isEmpty()){
+                OrderDetail lastOrder = orderQueue.peek();
+                slotsOccupied -= lastOrder.slots;
+                if((slotsOccupied + slotsForOrder) <= maxCookingSlots){
+                    timeToCookOrder += lastOrder.timeToCook;
+                    slotsOccupied += slotsForOrder;
+                    if(timeToCookOrder > maxTimeLimit){
+                        slotsOccupied += lastOrder.slots;
+                        orderDetails.stream().map(i -> slotsOccupied += i.slots).collect(Collectors.toList());
+                        orderQueue.addAll(orderDetails);
+                        return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId);
+                    }
+                    orderQueue.poll();
+                    orderQueue.add(new OrderDetail(slotsForOrder, timeToCookOrder));
+                    break;
+                }
+                orderDetails.add(orderQueue.poll());
+            }
+        }
+        return String.format("Order %s will get delivered in %s minutes", orderId, timeToCookOrder);
+    }
+
+    private static class OrderCompare implements Comparator<OrderDetail> {
+        public int compare(OrderDetail first, OrderDetail second) {
+            if(first.timeToCook == second.timeToCook) return 0;
+            else if(first.timeToCook > second.timeToCook) return 1;
+            else return -1;
+        }
+    }
+
+    private static class OrderDetail {
+        int slots;
+        double timeToCook;
+        OrderDetail(int slots, double timeToCook){
+            this.slots = slots;
+            this.timeToCook = timeToCook;
+        }
+    }
+}
