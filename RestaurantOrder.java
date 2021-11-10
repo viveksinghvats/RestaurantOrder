@@ -7,13 +7,14 @@ import java.util.stream.Collectors;
 
 class RestaurantOrder {
     static int slotsOccupied = 0;
+    // sort the orders in ascending order on the basis of their total cooking and delivery time
     static PriorityQueue<OrderDetail> orderQueue = new PriorityQueue<>(new OrderCompare());
     public static void main(String[] args) {
         try {
             InputStreamReader inputStreamReader = new InputStreamReader(System.in);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             StringBuffer result = new StringBuffer();
-            while (true){
+            while (true) {
                 String orderData = bufferedReader.readLine();
                 if(orderData == null) break;
                 result.append(calculateOrderTime(orderData.replaceAll("\\[|\\]", "").split("\\s*,\\s*"))).append(System.getProperty("line.separator"));
@@ -33,11 +34,13 @@ class RestaurantOrder {
         double timeToCookOrder = 0;
         String orderId = inputOrderData[0];
         double distance = Double.parseDouble(inputOrderData[totalEntry - 1]);
+        // cannot cook more that 7 dishes for a order
         if(totalEntry > 9) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
         for(int i = 1; i < totalEntry - 1; i++){
             if(slotsForOrder <= maxCookingSlots){
                 if(inputOrderData[i].equals("A")){
                     slotsForOrder += 1;
+                    // maximum cooking time for an order will be 29 minutes
                     timeToCookOrder = Math.max(timeToCookOrder, 17);
                 } else if(inputOrderData[i].equals("M")){
                     slotsForOrder += 2;
@@ -48,10 +51,12 @@ class RestaurantOrder {
         timeToCookOrder += (distance * timePerKm);
         if(slotsForOrder > maxCookingSlots) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
         if(timeToCookOrder > maxTimeLimit) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
+        // more than one order can be cooked parallelly if enough free slots are available
         if((slotsOccupied + slotsForOrder) <= maxCookingSlots){
             slotsOccupied += slotsForOrder;
             orderQueue.add(new OrderDetail(slotsForOrder, timeToCookOrder));
         } else {
+            // will wait for that order to be deliver till we have enough slots available for next order
             List<OrderDetail> orderDetails = new ArrayList<>();
             while(!orderQueue.isEmpty()){
                 OrderDetail lastOrder = orderQueue.peek();
