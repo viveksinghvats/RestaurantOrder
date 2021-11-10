@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 class RestaurantOrder {
     static int slotsOccupied = 0;
-    // sort the orders in ascending order on the basis of their total cooking and delivery time
+    // sort the orders in ascending on the basis of their total cooking and delivery time
     static PriorityQueue<OrderDetail> orderQueue = new PriorityQueue<>(new OrderCompare());
     public static void main(String[] args) {
         try {
@@ -34,7 +34,7 @@ class RestaurantOrder {
         double timeToCookOrder = 0;
         String orderId = inputOrderData[0];
         double distance = Double.parseDouble(inputOrderData[totalEntry - 1]);
-        // cannot cook more that 7 dishes for a order
+        // cannot cook more that 7 dishes for an order
         if(totalEntry > 9) { return String.format("Order %s is denied because the restaurant cannot accommodate it.", orderId); }
         for(int i = 1; i < totalEntry - 1; i++){
             if(slotsForOrder <= maxCookingSlots){
