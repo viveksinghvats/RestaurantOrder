@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
-class RestaurantOrder {
+class Main {
     static int slotsOccupied = 0;
     // sort the orders in ascending on the basis of their total cooking and delivery time
     static PriorityQueue<OrderDetail> orderQueue = new PriorityQueue<>(new OrderCompare());
